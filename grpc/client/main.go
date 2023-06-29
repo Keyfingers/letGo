@@ -3,34 +3,32 @@ package main
 import (
 	"context"
 	"log"
-	"os"
-	"time"
 
 	"google.golang.org/grpc"
-	pb "path/to/your/generated/files" // 替换为你的生成的pb目录路径
-)
 
-const (
-	address     = "localhost:50051"
-	defaultName = "Alice"
+	pb "letGo/grpc/server/proto"
 )
 
 func main() {
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	// 创建与服务器的连接
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
-	name := defaultName
-	if len(os.Args) > 1 {
-		name = os.Args[1]
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
+
+	// 创建 Greeter 客户端实例
+	client := pb.NewGreeterClient(conn)
+
+	// 构建请求
+	request := &pb.HelloRequest{Name: "Alice"}
+
+	// 发送请求
+	response, err := client.SayHello(context.Background(), request)
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
-	log.Printf("Greeting: %s", r.Message)
+
+	// 输出响应结果
+	log.Printf("Greeting: %s", response.Message)
 }
