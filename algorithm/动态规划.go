@@ -57,9 +57,9 @@ func max(a, b int) int {
 
 func main() {
 	// 物品的重量
-	weights := []int{2, 3, 4, 5}
+	weights := []int{2, 3, 4, 2}
 	// 物品的价值
-	values := []int{3, 4, 5, 6}
+	values := []int{3, 6, 9, 7}
 	// 背包的容量
 	capacity := 5
 	// 物品的数量
