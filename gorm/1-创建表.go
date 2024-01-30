@@ -1,27 +1,90 @@
 package main
 
-type Student struct {
-	Id   int
-	Name string
-	Age  int
+import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"log"
+)
+
+type Info struct {
+	SynonymInfos string    `json:"synonym_infos"`
+	SchemaInfos  []Columns `json:"schema_infos"`
+	TableId      string    `json:"table_id"`
+	TableDesc    string    `json:"table_desc"`
+}
+
+type Columns struct {
+	ColCaption string `json:"col_caption"`
+	ColName    string `json:"col_name"`
 }
 
 func main() {
-	//
-	//dsn := "root:fowWNObs5AlS1aHx@tcp(123.60.77.193:3306)/mexico_microloan_admin"
-	//mysqlConfig := mysql.Config{
-	//	DSN:                       dsn,   // DSN data source name
-	//	DefaultStringSize:         191,   // string 类型字段的默认长度
-	//	DisableDatetimePrecision:  true,  // 禁用 datetime 精度，MySQL 5.6 之前的数据库不支持
-	//	DontSupportRenameIndex:    true,  // 重命名索引时采用删除并新建的方式，MySQL 5.7 之前的数据库和 MariaDB 不支持重命名索引
-	//	DontSupportRenameColumn:   true,  // 用 `change` 重命名列，MySQL 8 之前的数据库和 MariaDB 不支持重命名列
-	//	SkipInitializeWithVersion: false, // 根据版本自动配置
-	//}
-	//if db, err := gorm.Open("mysql", &mysqlConfig); err != nil {
-	//	panic("failed to connect database")
-	//	os.Exit(0)
-	//}
-	//
-	////借助gorm创建表
-	//panic(db.AutoMigrate(new(Student)).Error())
+	// 数据库连接信息
+	dataSourceName := "root:fowWNObs5AlS1aHx@tcp(123.60.77.193:3306)/mexico_microloan"
+
+	// 连接数据库
+	db, err := sql.Open("mysql", dataSourceName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	// 测试连接是否成功
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("成功连接到数据库")
+
+	// 执行查询操作
+	rows, err := db.Query("SELECT table_name,table_comment FROM information_schema.tables WHERE table_schema = 'mexico_microloan'")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	// 遍历表信息
+	for rows.Next() {
+		var tableName, tableComment string
+		if err := rows.Scan(&tableName, &tableComment); err != nil {
+			log.Fatal(err)
+		}
+
+		// 查询每个表的字段信息
+		fields, err := db.Query("SELECT column_name, column_comment FROM information_schema.columns WHERE table_schema = 'mexico_microloan' AND table_name = ?", tableName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer fields.Close()
+
+		// 遍历字段信息
+		var col []Columns
+		for fields.Next() {
+			var columns Columns
+			var columnName, columnComment string
+			if err := fields.Scan(&columnName, &columnComment); err != nil {
+				log.Fatal(err)
+			}
+			columns.ColName = columnName
+			columns.ColCaption = columnComment
+			col = append(col, columns)
+		}
+		var info Info
+		info.TableDesc = tableComment
+		info.SynonymInfos = tableName
+		info.SchemaInfos = col
+
+		jsonData, err := json.Marshal(info)
+		if err != nil {
+			fmt.Println("转换为JSON时出错:", err)
+			return
+		}
+		//打印 json 数据
+		fmt.Println(string(jsonData))
+		fmt.Println("---------------------------------------------------------------------------------")
+
+	}
+
 }
