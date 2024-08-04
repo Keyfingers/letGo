@@ -12,26 +12,35 @@ func main() {
 
 	wg := sync.WaitGroup{}
 
-	for {
-		select {
-		case achenl <- true:
-			fmt.Print("a")
-			bchnel <- true
+	go func() {
+		for {
+			select {
+			case <-achenl:
+				fmt.Print("a")
+				bchnel <- true
+			}
 		}
-	}
+	}()
 
 	wg.Add(1)
 
 	go func(wg *sync.WaitGroup) {
+		counter := 1
 		for {
 			select {
-			case bchnel <- true:
-				defer wg.Done()
+			case <-bchnel:
+				if counter > 10 {
+					wg.Done()
+					return
+				}
 				fmt.Print("b")
+				counter++
 				achenl <- true
 			}
 		}
 	}(&wg)
+
+	achenl <- true
 
 	wg.Wait()
 
