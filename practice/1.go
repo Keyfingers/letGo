@@ -8,6 +8,7 @@ func main() {
 	fmt.Print(ints)
 }
 
+// 冒牌排序 O(n2)
 func maopaoSorted(arr []int) []int {
 	length := len(arr)
 	if length < 0 {
