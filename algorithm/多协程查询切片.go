@@ -51,7 +51,7 @@ func SearchTarget(ctx context.Context, data []int, target int, resultChan chan b
 		default:
 		}
 		// 模拟一个耗时查找，这里只是比对值，真实开发中可以是其他操作
-		fmt.Fprintf(os.Stdout, "v: %d \n", v)
+		//fmt.Fprintf(os.Stdout, "v: %d \n", v)
 		time.Sleep(time.Millisecond * 1500)
 		if target == v {
 			resultChan <- true

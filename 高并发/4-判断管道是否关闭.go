@@ -10,7 +10,6 @@ func main() {
 			numchan <- i
 			fmt.Println("写入数据", i)
 		}
-
 		close(numchan)
 	}()
 
