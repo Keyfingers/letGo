@@ -13,12 +13,12 @@ func sortArray(nums []int) []int {
 	return nums
 }
 
-// 快速排序
 func quickSort(nums []int, l, r int) {
 	if l >= r {
 		return
 	}
 	i, j := l-1, r+1
+	// 选择数组中间元素作为基准值
 	x := nums[(l+r)>>1]
 	for i < j {
 		for {
@@ -27,7 +27,6 @@ func quickSort(nums []int, l, r int) {
 				break
 			}
 		}
-
 		for {
 			j--
 			if nums[j] <= x {
